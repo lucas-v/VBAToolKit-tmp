@@ -12,9 +12,11 @@ Attribute VB_Exposed = True
 ' Author    : Jean-Pierre Imbert
 ' Date      : 09/08/2013
 ' Purpose   : Manage the toolbars during install/uninstall of addin
-'             - This module exists in slightly different Prod and Test versions
-'               - explicit call to VBAToolKit project for Prod version
-'               - explicit call to VBAToolKit_DEV project for Test version
+'
+' WARNING :
+'      This module exists in slightly different Prod and Test versions
+'          - explicit call to VBAToolKit project for Prod version
+'          - explicit call to VBAToolKit_DEV project for Test version
 '
 ' Copyright 2013 Skwal-Soft (http://skwalsoft.com)
 '
@@ -34,14 +36,22 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private Sub Workbook_AddinInstall()
-    VBAToolKit.vtkToolBars.vtkCreateToolbars
+    VBAToolKit_DEV.vtkToolBars.vtkCreateToolbars
 End Sub
 
 Private Sub Workbook_AddinUninstall()
-    VBAToolKit.vtkToolBars.vtkDeleteToolbars
+    VBAToolKit_DEV.vtkToolBars.vtkDeleteToolbars
 End Sub
 
-Private Sub Workbook_Open()
-    If AddIns("VBAToolKit").Installed Then VBAToolKit.vtkToolBars.vtkCreateToolbars excToolbar:=False
+Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
+    ' Export and normalize modules
+    VBAToolKit.vtkExportConfiguration ThisWorkbook.VBProject, "VBAToolKit", "VBAToolKit_DEV", True
+    
+    ' Export as XML
+    Dim fso As New FileSystemObject
+    VBAToolKit_DEV.vtkWriteXMLDOMToFile vtkExportAsXMLDOM("VBAToolKit"), fso.GetFile(ThisWorkbook.FullName).ParentFolder.path & "\" & "VBAToolKit_DEV.xml"
+
 End Sub
+
+
 
